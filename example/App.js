@@ -16,11 +16,14 @@ import {
   Alert,
 } from 'react-native';
 import NotifService from './NotifService';
+import appConfig from './app.json';
 
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      senderId: appConfig.senderID,
+    };
 
     this.notif = new NotifService(
       this.onRegister.bind(this),
@@ -77,16 +80,27 @@ export default class App extends Component {
           }}>
           <Text>Check Permission</Text>
         </TouchableOpacity>
+
+        <View style={styles.spacer}></View>
+        <TextInput
+          style={styles.textField}
+          value={this.state.senderId}
+          onChangeText={(e) => {
+            this.setState({senderId: e});
+          }}
+          placeholder="FCM ID"
+        />
         <TouchableOpacity
           style={styles.button}
           onPress={() => {
-            this.notif.requestPermissions();
+            this.notif.configure(
+              this.onRegister.bind(this),
+              this.onNotif.bind(this),
+              this.state.senderId,
+            );
           }}>
-          <Text>Request Permissions</Text>
+          <Text>Configure Sender ID</Text>
         </TouchableOpacity>
-
-        <View style={styles.spacer}></View>
-
         {this.state.fcmRegistered && <Text>FCM Configured !</Text>}
 
         <View style={styles.spacer}></View>
@@ -95,13 +109,13 @@ export default class App extends Component {
   }
 
   onRegister(token) {
-    //Alert.alert('Registered !', JSON.stringify(token));
+    Alert.alert('Registered !', JSON.stringify(token));
     console.log(token);
     this.setState({registerToken: token.token, fcmRegistered: true});
   }
 
   onNotif(notif) {
-    console.log('onNotification', notif);
+    console.log(notif);
     Alert.alert(notif.title, notif.message);
   }
 

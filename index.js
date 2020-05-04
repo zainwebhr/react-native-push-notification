@@ -29,7 +29,7 @@ var Notifications = {
 	}
 };
 
-Notifications.callNative = function(name, params) {
+Notifications.callNative = function(name: String, params: Array) {
 	if ( typeof this.handler[name] === 'function' ) {
 		if ( typeof params !== 'array' &&
 			 typeof params !== 'object' ) {
@@ -51,7 +51,7 @@ Notifications.callNative = function(name, params) {
  * @param {Object}		options.permissions - Permissions list
  * @param {Boolean}		options.requestPermissions - Check permissions when register
  */
-Notifications.configure = function(options) {
+Notifications.configure = function(options: Object) {
 	if ( typeof options.onRegister !== 'undefined' ) {
 		this.onRegister = options.onRegister;
 	}
@@ -66,6 +66,10 @@ Notifications.configure = function(options) {
 
 	if ( typeof options.permissions !== 'undefined' ) {
 		this.permissions = options.permissions;
+	}
+
+	if ( typeof options.senderID !== 'undefined' ) {
+		this.senderID = options.senderID;
 	}
 
 	if ( typeof options.onRemoteFetch !== 'undefined' ) {
@@ -117,7 +121,7 @@ Notifications.unregister = function() {
  * @param {String}		details.ticker -  ANDROID ONLY: The ticker displayed in the status bar.
  * @param {Object}		details.userInfo -  iOS ONLY: The userInfo used in the notification alert.
  */
-Notifications.localNotification = function(details) {
+Notifications.localNotification = function(details: Object) {
 	if ( Platform.OS === 'ios' ) {
 		// https://developer.apple.com/reference/uikit/uilocalnotification
 
@@ -149,7 +153,7 @@ Notifications.localNotification = function(details) {
  * @param {Object}		details (same as localNotification)
  * @param {Date}		details.date - The date and time when the system should deliver the notification
  */
-Notifications.localNotificationSchedule = function(details) {
+Notifications.localNotificationSchedule = function(details: Object) {
 	if ( Platform.OS === 'ios' ) {
 		let soundName = details.soundName ? details.soundName : 'default'; // play sound (and vibrate) as default behaviour
 
@@ -189,7 +193,7 @@ Notifications.localNotificationSchedule = function(details) {
 };
 
 /* Internal Functions */
-Notifications._onRegister = function(token) {
+Notifications._onRegister = function(token: String) {
 	if ( this.onRegister !== false ) {
 		this.onRegister({
 			token: token,
@@ -198,7 +202,7 @@ Notifications._onRegister = function(token) {
 	}
 };
 
-Notifications._onRemoteFetch = function(notificationData) {
+Notifications._onRemoteFetch = function(notificationData: Object) {
 	if ( this.onRemoteFetch !== false ) {
 		this.onRemoteFetch(notificationData)
 	}
@@ -258,8 +262,8 @@ Notifications._requestPermissions = function() {
 							.then(this._onPermissionResult.bind(this))
 							.catch(this._onPermissionResult.bind(this));
 		}
-	} else if (Platform.OS === 'android') {
-		return this.callNative( 'requestPermissions', []);
+	} else if ( typeof this.senderID !== 'undefined' ) {
+		return this.callNative( 'requestPermissions', [ this.senderID ]);
 	}
 };
 
@@ -267,18 +271,14 @@ Notifications._requestPermissions = function() {
 Notifications.requestPermissions = function() {
 	if ( Platform.OS === 'ios' ) {
 		return this.callNative( 'requestPermissions', [ this.permissions ]);
-	} else if (Platform.OS === 'android') {
-		return this.callNative( 'requestPermissions', []);
+	} else if ( typeof this.senderID !== 'undefined' ) {
+		return this.callNative( 'requestPermissions', [ this.senderID ]);
 	}
 };
 
 /* Fallback functions */
 Notifications.subscribeToTopic = function() {
 	return this.callNative('subscribeToTopic', arguments);
-};
-
-Notifications.unsubscribeFromTopic = function () {
-	return this.callNative('unsubscribeFromTopic', arguments);
 };
 
 Notifications.presentLocalNotification = function() {
@@ -330,18 +330,6 @@ Notifications.registerNotificationActions = function() {
 Notifications.clearAllNotifications = function() {
 	// Only available for Android
 	return this.callNative('clearAllNotifications', arguments)
-}
-
-Notifications.removeAllDeliveredNotifications = function() {
-	return this.callNative('removeAllDeliveredNotifications', arguments);
-}
-
-Notifications.getDeliveredNotifications = function() {
-	return this.callNative('getDeliveredNotifications', arguments);
-}
-
-Notifications.removeDeliveredNotifications = function() {
-	return this.callNative('removeDeliveredNotifications', arguments);
 }
 
 module.exports = Notifications;

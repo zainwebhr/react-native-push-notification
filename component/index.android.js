@@ -26,19 +26,19 @@ NotificationsComponent.prototype.getInitialNotification = function () {
         });
 };
 
-NotificationsComponent.prototype.requestPermissions = function() {
-	RNPushNotification.requestPermissions();
+NotificationsComponent.prototype.requestPermissions = function(senderID: string) {
+	RNPushNotification.requestPermissions(senderID);
 };
 
-NotificationsComponent.prototype.subscribeToTopic = function(topic) {
+NotificationsComponent.prototype.subscribeToTopic = function(topic: string) {
 	RNPushNotification.subscribeToTopic(topic);
 };
 
-NotificationsComponent.prototype.cancelLocalNotifications = function(details) {
+NotificationsComponent.prototype.cancelLocalNotifications = function(details: Object) {
 	RNPushNotification.cancelLocalNotifications(details);
 };
 
-NotificationsComponent.prototype.clearLocalNotification = function(details) {
+NotificationsComponent.prototype.clearLocalNotification = function(details: Object) {
 	RNPushNotification.clearLocalNotification(details);
 };
 
@@ -46,15 +46,15 @@ NotificationsComponent.prototype.cancelAllLocalNotifications = function() {
 	RNPushNotification.cancelAllLocalNotifications();
 };
 
-NotificationsComponent.prototype.presentLocalNotification = function(details) {
+NotificationsComponent.prototype.presentLocalNotification = function(details: Object) {
 	RNPushNotification.presentLocalNotification(details);
 };
 
-NotificationsComponent.prototype.scheduleLocalNotification = function(details) {
+NotificationsComponent.prototype.scheduleLocalNotification = function(details: Object) {
 	RNPushNotification.scheduleLocalNotification(details);
 };
 
-NotificationsComponent.prototype.setApplicationIconBadgeNumber = function(number) {
+NotificationsComponent.prototype.setApplicationIconBadgeNumber = function(number: number) {
        if (!RNPushNotification.setApplicationIconBadgeNumber) {
                return;
        }
@@ -65,20 +65,18 @@ NotificationsComponent.prototype.abandonPermissions = function() {
 	/* Void */
 };
 
-NotificationsComponent.prototype.checkPermissions = function(callback) {
+NotificationsComponent.prototype.checkPermissions = function(callback: Function) {
 	RNPushNotification.checkPermissions().then(alert => callback({ alert }));
 };
 
-NotificationsComponent.prototype.addEventListener = function(type, handler) {
+NotificationsComponent.prototype.addEventListener = function(type: string, handler: Function) {
 	var listener;
 	if (type === 'notification') {
 		listener =  DeviceEventEmitter.addListener(
 			DEVICE_NOTIF_EVENT,
 			function(notifData) {
-				if (notifData && notifData.dataJSON) {
-					var data = JSON.parse(notifData.dataJSON);
-					handler(data);
-				}
+				var data = JSON.parse(notifData.dataJSON);
+				handler(data);
 			}
 		);
 	} else if (type === 'register') {
@@ -92,10 +90,8 @@ NotificationsComponent.prototype.addEventListener = function(type, handler) {
 		listener = DeviceEventEmitter.addListener(
 			REMOTE_FETCH_EVENT,
 			function(notifData) {
-				if (notifData && notifData.dataJSON) {
-					var notificationData = JSON.parse(notifData.dataJSON)
-					handler(notificationData);
-				}
+				var notificationData = JSON.parse(notifData.dataJSON)
+				handler(notificationData);
 			}
 		);
 	}
@@ -103,7 +99,7 @@ NotificationsComponent.prototype.addEventListener = function(type, handler) {
 	_notifHandlers.set(type, listener);
 };
 
-NotificationsComponent.prototype.removeEventListener = function(type, handler) {
+NotificationsComponent.prototype.removeEventListener = function(type: string, handler: Function) {
 	var listener = _notifHandlers.get(type);
 	if (!listener) {
 		return;
@@ -112,23 +108,12 @@ NotificationsComponent.prototype.removeEventListener = function(type, handler) {
 	_notifHandlers.delete(type);
 }
 
-NotificationsComponent.prototype.registerNotificationActions = function(details) {
+NotificationsComponent.prototype.registerNotificationActions = function(details: Object) {
 	RNPushNotification.registerNotificationActions(details);
 }
 
 NotificationsComponent.prototype.clearAllNotifications = function() {
 	RNPushNotification.clearAllNotifications()
-}
-
-NotificationsComponent.prototype.removeAllDeliveredNotifications = function() {
-  RNPushNotification.removeAllDeliveredNotifications();
-}
-
-NotificationsComponent.prototype.getDeliveredNotifications = function(callback) {
-  RNPushNotification.getDeliveredNotifications(callback);
-}
-NotificationsComponent.prototype.removeDeliveredNotifications = function(identifiers) {
-  RNPushNotification.removeDeliveredNotifications(identifiers);
 }
 
 module.exports = {
