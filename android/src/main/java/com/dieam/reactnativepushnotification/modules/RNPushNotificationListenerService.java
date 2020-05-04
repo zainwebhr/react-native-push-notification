@@ -36,7 +36,6 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
     public void onMessageReceived(RemoteMessage message) {
         String from = message.getFrom();
         RemoteMessage.Notification remoteNotification = message.getNotification();
-
         final Bundle bundle = new Bundle();
         // Putting it from remoteNotification first so it can be overriden if message
         // data has it
@@ -44,16 +43,17 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
             // ^ It's null when message is from GCM
             bundle.putString("title", remoteNotification.getTitle());
             bundle.putString("message", remoteNotification.getBody());
+            bundle.putString("sound", remoteNotification.getSound());
+            bundle.putString("color", remoteNotification.getColor());
         }
 
-        for(Map.Entry<String, String> entry : message.getData().entrySet()) {
-            bundle.putString(entry.getKey(), entry.getValue());
-        }
-        JSONObject data = getPushData(bundle.getString("data"));
+        Map<String, String> notificationData = message.getData();
+
         // Copy `twi_body` to `message` to support Twilio
-        if (bundle.containsKey("twi_body")) {
-            bundle.putString("message", bundle.getString("twi_body"));
+        if (notificationData.containsKey("twi_body")) {
+            bundle.putString("message", notificationData.get("twi_body"));
         }
+        JSONObject data = getPushData(notificationData.get("data"));
 
         if (data != null) {
             if (!bundle.containsKey("message")) {
@@ -74,6 +74,12 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
                 ApplicationBadgeHelper.INSTANCE.setApplicationIconBadgeNumber(this, badge);
             }
         }
+
+        Bundle dataBundle = new Bundle();
+        for(Map.Entry<String, String> entry : notificationData.entrySet()) {
+            dataBundle.putString(entry.getKey(), entry.getValue());
+        }
+        bundle.putParcelable("data", dataBundle);
 
         Log.v(LOG_TAG, "onMessageReceived: " + bundle);
 
