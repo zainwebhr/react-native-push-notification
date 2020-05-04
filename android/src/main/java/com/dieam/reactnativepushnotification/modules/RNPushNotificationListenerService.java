@@ -7,6 +7,9 @@ import com.google.firebase.messaging.RemoteMessage;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,10 +21,12 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 
@@ -78,6 +83,7 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             public void run() {
+                handleCall((bundle));
                 // Construct and load our normal React JS code bundle
                 ReactInstanceManager mReactInstanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
                 ReactContext context = mReactInstanceManager.getCurrentReactContext();
@@ -98,6 +104,56 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
                 }
             }
         });
+    }
+
+
+
+    private void handleCall(Bundle bundle) {
+        try {
+            String notificationType = bundle.getString("type");
+            if (notificationType != null) {
+                if (notificationType.equals("3") || notificationType.equals("4")) {
+                    String bundleStr = convertJSON(bundle);
+                    Intent intent = new Intent();
+                    intent.putExtra("bundle", bundleStr);
+                    intent.setAction("com.vergesystems.webhr.INCOMING_CALL");
+                    intent.setComponent(new ComponentName(getPackageName(),"com.vergesystems.webhr.receivers.IncomingCallReceiver"));
+                    getApplicationContext().sendBroadcast(intent);
+                }
+            }
+
+        } catch (Exception ex) {
+            Log.e("handleCall", ex.getMessage());
+        }
+
+
+    }
+
+
+    String convertJSON(Bundle bundle) {
+        try {
+            JSONObject json = convertJSONObject(bundle);
+            return json.toString();
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    // a Bundle is not a map, so we have to convert it explicitly
+    JSONObject convertJSONObject(Bundle bundle) throws JSONException {
+        JSONObject json = new JSONObject();
+        Set<String> keys = bundle.keySet();
+        for (String key : keys) {
+            Object value = bundle.get(key);
+            if (value instanceof Bundle) {
+                json.put(key, convertJSONObject((Bundle) value));
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                json.put(key, JSONObject.wrap(value));
+            } else {
+                json.put(key, value);
+            }
+        }
+        return json;
     }
 
     private JSONObject getPushData(String dataString) {
